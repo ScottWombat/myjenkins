@@ -1,0 +1,62 @@
+version: '3.8'
+services:
+    nexus:
+      image: sonatype/nexus3
+      hostname: nexus
+      ports:
+        - 10680:8081
+      volumes:
+        - './nexus:/nexus-data'
+      networks:
+        mynetwork:
+          ipv4_address: 172.75.0.5
+    mailhog:
+      image: mailhog/mailhog:v1.0.1
+      container_name: mailhog
+      networks:
+        mynetwork:
+          ipv4_address: 172.75.0.4
+      ports:
+        - 1025:1025
+        - 8025:8025
+    jenkins-contoller:
+      build: 
+        context: .
+        dockerfile: Dockerfile
+      container_name: jenkins-controller
+      restart: always
+      privileged: true
+      user: root
+      ports:
+        - 50001:8080
+        - 50000:50000
+      volumes:
+        - './jenkins_configuration:/var/jenkins_home'
+        - '/var/run/docker.sock:/var/run/docker.sock'
+      networks:
+        mynetwork:
+          ipv4_address: 172.75.0.3
+    jenkins-agent:
+      build: 
+        context: .
+        dockerfile: Dockerfile_agent
+      container_name: jenkins-agent
+      restart: always
+      privileged: true
+      user: root
+      expose:
+        - 22
+      environment:
+        - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7KX6YVEXfIoJYD7F8EOX3WO0mZ7JIjH5qkV70bAM1LKn+Jn/QjXuRS0elBLFERUUXkbmv8B9Tx0AO2RfW0TRcmbFj+IhePU7YjiGrvC+YSDUatERBJ08OFJNBdhHwqBsozz8TvljdXyXfv0WySXwMNobPDTjZo7KQf90cvNuJ8/WUX9+sx/8evb3nTkbrtyR4de6YqvDRD8xSN9jSakYmC6GU+Dvipy+V/8bU7kSLezBeAtsCnRvKKQ1in9bjjV4qyKkMCMT7c3JOXY5MuyTlv2XqpR5id822nfj1RuM+ZYxK/k7npAjCG3ME/smJ+fzXigDigZe2Cxv7HhwuETw/KSZRXFvu+5JqE0Gox7AFpHGjucuFYwkqJ1qi31uoZIGnCAlkWCuBrt/RXuMH5fpUhTAo2UYEDpT6rF+njkU/h5dV3cE43VmynkvI3hr1jw+yKlspCJwGbvkqX3PWKjUE5eMAi9TDPCrs+2+RgrF0Zv21dvkAz2Vfb89KAaUrOD0= revit@mxlinux
+      volumes:
+        - '/var/run/docker.sock:/var/run/docker.sock'
+      networks:
+        mynetwork:
+          ipv4_address: 172.75.0.2
+networks:
+  mynetwork:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.75.0.0/16
+          gateway: 172.75.0.1

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  jenkins_controller:
+    image: jenkins/jenkins:lts-jdk17
+    privileged: true
+    user: root
+    container_name: $CONTAINER_NAME
+    ports:
+      - 50001:8080
+      - 50002:50000
+    volumes:
+      - './jenkins_configuration:/var/jenkins_home'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    name: my-jenkins-network
